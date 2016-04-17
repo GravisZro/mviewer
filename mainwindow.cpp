@@ -8,9 +8,9 @@ MainWindow::MainWindow(QWidget *parent)
     m_is_scaled(false)
 {
   GraphicsView* view = new GraphicsView(new QGraphicsScene());
+
   QString filename;
   setWindowTitle("MViewer");
-
 
   if(QCoreApplication::arguments().size() != 2)
     throw(QString("Usage: %1 <filename>").arg(QCoreApplication::applicationName()));
@@ -22,24 +22,31 @@ MainWindow::MainWindow(QWidget *parent)
   QPixmap pix(filename);
   m_pixmap = view->scene()->addPixmap(pix);
 
+
   setCentralWidget(view);
   //resize(size());
   setFixedSize(size());
 
-  QRect geometry = QApplication::desktop()->availableGeometry();
 
-  move((geometry.width () - width ()) / 2,
-       (geometry.height() - height()) / 2);
+  QRect desktop_geometry = QApplication::desktop()->availableGeometry();
+
+  move((desktop_geometry.width () - width ()) / 2,
+       (desktop_geometry.height() - height()) / 2);
 
   if(m_is_scaled)
   {
-    float w_scale = geometry.width();
-          w_scale /= pix.width();
-    float h_scale = geometry.height();
-          h_scale /= pix.height();
+    float w_scale = m_sz.width();//desktop_geometry.width();
+          w_scale /= pix.width()+8;
+    float h_scale = m_sz.height();//desktop_geometry.height();
+          h_scale /= pix.height()+8;
 
+    qDebug() << "width  scale:" << w_scale;
+    qDebug() << "height scale:" << h_scale;
     if(w_scale < 1.0 || h_scale < 1.0)
       m_pixmap->setScale(w_scale < h_scale ? w_scale : h_scale);
+    qDebug() << "scale:" << m_pixmap->scale();
+    qDebug() << "bounding rect:" << m_pixmap->boundingRect();
+    //qDebug() << "scaled rect:" << m_pixmap->boundingRect() * QSize(m_pixmap->scale(), m_pixmap->scale());
   }
 
 #if 0
@@ -67,20 +74,20 @@ QSize MainWindow::size(void)
 {
   if(!m_sz.isValid())
   {
-    QRect geometry = QApplication::desktop()->availableGeometry();
-    m_sz = m_pixmap->pixmap().size() + QSize(2, 2);
+    QRect desktop_geometry = QApplication::desktop()->availableGeometry();
+    qDebug() << "desktop:" << desktop_geometry;
+    m_sz = m_pixmap->pixmap().size() + QSize(4, 4);
 
-    if(m_sz.width () > geometry.width () ||
-       m_sz.height() > geometry.height())
+    if(m_sz.width () > desktop_geometry.width () ||
+       m_sz.height() > desktop_geometry.height())
     {
-      m_sz.scale(geometry.size(), Qt::KeepAspectRatio);
+      m_sz.scale(desktop_geometry.size() - QSize(32, 32), Qt::KeepAspectRatio);
       m_is_scaled = true;
     }
   }
 
   return m_sz;
 }
-
 
 void MainWindow::keyPressEvent(QKeyEvent* event)
 {

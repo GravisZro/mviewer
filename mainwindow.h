@@ -16,7 +16,6 @@ class MainWindow : public QMainWindow
 
   protected:
     virtual void keyPressEvent(QKeyEvent* event);
-//    virtual void resizeEvent(QResizeEvent* event);
 
   private:
     QGraphicsPixmapItem* m_pixmap;
